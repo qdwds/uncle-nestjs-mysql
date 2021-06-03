@@ -32,3 +32,12 @@ Content-Disposition: form-data; name="file2"; filename="ddff76b400834f6d9669db19
 
 < C:\Users\4dogs\Desktop\ddff76b400834f6d9669db19218d0c3d_tplv-k3u1fbpfcp-zoom-1 (1).png
 --upload_files--
+
+### folder
+POST http://{{host}}:{{port}}/upload/folder
+Content-Type: multipart/form-data;boundary=upload_folder
+--folder
+Content-Disposition: form-data; name="file";filename="file";
+
+< C:\Users\4dogs\Desktop\public
+--folder--
