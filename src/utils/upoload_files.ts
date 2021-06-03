@@ -2,7 +2,7 @@
  * @Description: 校验文件夹是否存在
  * @Author: 前端伪大叔
  * @Date: 2021-06-02 11:08:18
- * @LastEditTime: 2021-06-03 17:44:22
+ * @LastEditTime: 2021-06-03 21:19:51
  * @yuque: http://www.yuque.com/qdwds
  */
 import { join } from "path";
@@ -18,8 +18,6 @@ export const create_upload_file = (path: string): Promise<boolean> => {
         if (s) {
             resolve(true);
         } else {
-            console.log(path);
-            
             mkdir(path, (e) => {
                 if (!e) {
                     resolve(true);
