@@ -2,11 +2,11 @@
  * @Description: 校验文件夹是否存在
  * @Author: 前端伪大叔
  * @Date: 2021-06-02 11:08:18
- * @LastEditTime: 2021-06-03 21:19:51
+ * @LastEditTime: 2021-06-04 16:10:30
  * @yuque: http://www.yuque.com/qdwds
  */
 import { join } from "path";
-import { existsSync, mkdir } from "fs";
+import { existsSync, mkdir} from "fs";
 
 //  上传地址的文件夹
 export const files_path = join(__dirname, "..", "upload_files");
@@ -27,4 +27,10 @@ export const create_upload_file = (path: string): Promise<boolean> => {
             })
         }
     })
+}
+
+//  去除
+export const getFileName = (filename: string) => {
+    const lastIndex = filename.lastIndexOf(".");
+    return filename.slice(0, lastIndex);
 }

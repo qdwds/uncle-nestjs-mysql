@@ -2,15 +2,15 @@
  * @Description: 文件上传相关
  * @Author: 前端伪大叔
  * @Date: 2021-05-31 11:30:49
- * @LastEditTime: 2021-06-03 22:27:50
+ * @LastEditTime: 2021-06-04 16:20:57
  * @yuque: http://www.yuque.com/qdwds
  */
-import { Body, Controller, Get, HttpException, HttpStatus, Post, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, HttpException, HttpStatus, Post, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { createWriteStream, mkdir, readdir, readdirSync } from 'fs';
-import { join, resolve } from 'path';
+import { createWriteStream, existsSync, readdir, readdirSync, readFileSync, rmdir, rmdirSync, unlink, unlinkSync, writeFile, writeFileSync } from 'fs';
+import { join } from 'path';
 
-import { create_upload_file, files_path } from "../../utils/upoload_files";
+import { create_upload_file, files_path, getFileName } from "../../utils/upoload_files";
 
 @Controller('upload')
 export class File_uploadController {
@@ -89,47 +89,55 @@ export class File_uploadController {
     @Post("max_file")
     @UseInterceptors(FileInterceptor("file"))
     async uploadMaxFile(@UploadedFile() file, @Body() body) {
-        // console.log(file);
         const { filename } = body;
-        const path_name = filename.split(" - ")[0];
+        //  每个文件名称
+        const file_path = filename.split(" - ")[0];
+        //  文件名称 - 去除后缀名
+        const file_path_name = getFileName(file_path);
+        //  文件是否创建成功 public 文件夹
         const fileIsShow = await create_upload_file(files_path);
-        //  创建失败 抛出错误
+
         if (!fileIsShow) {
             throw new HttpException({
                 message: false
             }, HttpStatus.INTERNAL_SERVER_ERROR)
         } else {
-
-            const path_name_show = await create_upload_file(join(files_path, path_name));;
-            if (!path_name_show) {
+            const file_name_show = await create_upload_file(join(files_path, file_path_name));;
+            if (!file_name_show) {
                 throw new HttpException({
                     message: false
                 }, HttpStatus.INTERNAL_SERVER_ERROR)
             } else {
-                const stream = createWriteStream(join(files_path, path_name, filename));
+                const stream = createWriteStream(join(files_path, file_path_name, filename));
                 stream.write(file.buffer)
             }
-
             return "上传成功"
         }
     }
 
     @Post("max_merge")
-    async mergeMaxFile(@Body() body){
+    async mergeMaxFile(@Body() body: any) {
         const { filename } = body;
-        const path_name = join(files_path,filename)
-        const chunkList = await readdirSync(path_name);
-        chunkList.sort((a:any,b:any)=>a.split(" - ")[1] - b.split(" - ")[1]);
-        console.log(chunkList);
-        chunkList.map((chunk,index)=>{
-            console.log(chunk);
-        })
-        return 'mearge'
-    }
 
-    pipStream(){
-        new Promise(resolve =>{
+        //  目录 + 文件名称
+        const path_name = join(files_path, filename);
+        //  取后缀的文件夹
+        const file_path_name = getFileName(path_name);
+        // 获取 每个切片
+        console.log(file_path_name);
 
-        })
+        readdir(file_path_name, (e, chunkList) => {
+            if (e) return e;
+            chunkList.sort((a: any, b: any) => a.split(" - ")[1] - b.split(" - ")[1]);
+            const files = chunkList.map((chunk, index) => {
+                return readFileSync(join(file_path_name, chunk))
+            })
+            const buffer = Buffer.concat(files);
+            //  写入切片 => 多个切片合并成一个文件
+            writeFileSync(path_name, buffer);
+            //  删除切片
+            
+
+        });
     }
 }
